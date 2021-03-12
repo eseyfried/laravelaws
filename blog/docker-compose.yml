@@ -1,0 +1,47 @@
+version: "3"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ets/laravelaws-app
+    container_name: app
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www
+      - ./config/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    environment: 
+      DB_HOST: laravelaws-db
+      MYSQL_DATABASE: laravelaws
+      DB_PASSWORD: laravelaws_ROOT
+      SESSION_DRIVER: redis
+      REDIS_HOST: redis
+  webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile_Nginx
+    image: ets/laravelaws-nginx
+    container_name: www
+    restart: unless-stopped
+    ports: 
+      - 8090:80
+    volumes:
+      - ./:/var/wwww
+      - ./config/nginx/conf.d/:/etc/nginx/conf.d/
+    depends_on:
+      - app
+  db:
+    image: mysql:5.7.22
+    container_name: laravelaws-db
+    environment: 
+      MYSQL_DATABASE: laravelaws
+      MYSQL_ROOT_PASSWORD: laravelaws_ROOT
+    volumes:
+      - dbdata:/var/lib/mysql/
+  redis:
+    image: redis:latest
+    container_name: laravelaws-redis
+  
+volumes:
+  dbdata:
+    driver: local
